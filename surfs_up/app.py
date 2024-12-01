@@ -44,9 +44,11 @@ def home():
         f'Available Routes:<br/>'
         f'/api/v1.0/precipitation <br/>'
         f'/api/v1.0/stations <br/>'
-        f'/api/v1.0/tobs <br/>'
-        f'/api/v1.0/start <br/>'
-        f'/api/v1.0/start/end'
+        f'/api/v1.0/tobs <br/><br/>'
+        f'<h4>Replace "start_date" with a date in (YYYY-MM-DD) format</h4><br/>'
+        f'/api/v1.0/start_date <br/><br/>'
+        f'<h4>Replace "start_date" and "end_date" with a date in (YYYY-MM-DD) format</h4><br/>'
+        f'/api/v1.0/start_date/end_date'
     )
 
 # Create a route for for the query resutls from your precipitation analysis
@@ -151,11 +153,8 @@ def mas_temp_observations():
 
 
 # Create a route that returns the min, avg, and max temp for a start date
-@app.route('/api/v1.0/start')
-def start():
-    # Ask user for a start date
-    start_date = input("Enter the start date (YYYY-MM-DD): ")
-
+@app.route('/api/v1.0/<start>')
+def start(start):
     # Create a session link
     session = Session(engine)
 
@@ -164,11 +163,11 @@ def start():
         func.min(Measurement.tobs),
         func.avg(Measurement.tobs),
         func.max(Measurement.tobs)
-    ).filter(Measurement.date >= start_date).all()
+    ).filter(Measurement.date >= start).all()
 
     # Save the results in a dictionary for jsonifycation
     temps = {
-        "start_date": start_date,
+        "start_date": start,
         "min_temp": results[0][0],
         "avg_temp": results[0][1],
         "max_temp": results[0][2]
@@ -181,14 +180,8 @@ def start():
     return jsonify(temps)
 
 # Create a route that returns the min, avg, and max temp for a start-end date
-@app.route('/api/v1.0/start/end')
-def start_end():
-    # Ask user for a start date
-    start_date = input("Enter the start date (YYYY-MM-DD): ")
-
-    # Ask user for a end date
-    end_date = input("Enter the end date (YYYY-MM-DD): ")
-
+@app.route('/api/v1.0/<start>/<end>')
+def start_end(start, end):
     # Create a session link
     session = Session(engine)
 
@@ -197,11 +190,12 @@ def start_end():
         func.min(Measurement.tobs),
         func.avg(Measurement.tobs),
         func.max(Measurement.tobs)
-    ).filter(Measurement.date >= start_date).filter(Measurement.date <= end_date).all()
+    ).filter(Measurement.date >= start).filter(Measurement.date <= end).all()
 
     # Save the results in a dictionary for jsonifycation
     temps = {
-        "start_date": start_date,
+        "start_date": start,
+        "end_date": end,
         "min_temp": results[0][0],
         "avg_temp": results[0][1],
         "max_temp": results[0][2]
